@@ -1,6 +1,6 @@
 {
   "name": "strapi-plugin-soft-delete-custom",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Strapi v5 soft delete plugin with restore functionality",
   "files": [
     "dist/",
@@ -60,18 +60,18 @@
     "verify": "strapi-plugin verify"
   },
   "peerDependencies": {
-    "@strapi/strapi": "^5.34.0"
+    "@strapi/strapi": "^5.34.0",
+    "@strapi/helper-plugin": "^5.0.0 || ^4.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "react-router-dom": "^6.0.0"
   },
   "devDependencies": {
     "@strapi/strapi": "^5.34.0",
     "@strapi/typescript-utils": "^5.34.0",
-    "@strapi/sdk-plugin": "^5.0.0",
     "@types/node": "^20.0.0",
     "@types/react": "^18.0.0",
     "@types/react-dom": "^18.0.0",
-    "react": "^18.0.0",
-    "react-dom": "^18.0.0",
-    "react-router-dom": "^6.0.0",
     "typescript": "^5.0.0"
   },
   "dependencies": {

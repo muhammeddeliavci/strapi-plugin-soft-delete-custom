@@ -17,7 +17,7 @@ import {
   Pagination,
 } from '@strapi/design-system';
 import { Trash, ArrowClockwise } from '@strapi/icons';
-import { useFetchClient, useNotification } from '@strapi/helper-plugin';
+import { useFetchClient, useNotification } from '@strapi/strapi/admin';
 
 interface SoftDeletedEntry {
   id: string | number;
