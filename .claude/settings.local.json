@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(openspec new:*)",
+      "Bash(openspec status:*)",
+      "Bash(openspec instructions proposal:*)",
+      "Bash(openspec instructions design:*)",
+      "Bash(openspec instructions specs:*)",
+      "Bash(openspec instructions tasks:*)",
+      "Bash(openspec instructions apply:*)",
+      "Bash(npm install)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(if [ -d \"C:\\\\wamp64\\\\www\\\\x\\\\strapi-plugin-soft-delete-custom\\\\openspec\\\\changes\\\\archive\\\\2026-02-03-strapi-v5-soft-delete-plugin\" ])",
+      "Bash(then echo \"EXISTS\")",
+      "Bash(else echo \"OK\")",
+      "Bash(fi)",
+      "Bash(npx tsc --version)",
+      "Bash(npx tsc)",
+      "Bash(npm pack:*)",
+      "Bash(npm whoami:*)"
+    ]
+  }
+}
