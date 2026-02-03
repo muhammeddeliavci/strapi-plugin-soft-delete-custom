@@ -18,7 +18,10 @@
       "Bash(npx tsc --version)",
       "Bash(npx tsc)",
       "Bash(npm pack:*)",
-      "Bash(npm whoami:*)"
+      "Bash(npm whoami:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)"
     ]
   }
 }
