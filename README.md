@@ -38,6 +38,223 @@ npm run build
 npm run develop
 ```
 
+## How to Use After Installation
+
+### ⚡ Quick Start (5 Minutes)
+
+#### Step 1: Verify Installation
+After restarting Strapi, check the console logs for:
+```
+[soft-delete-custom] Plugin registered successfully
+```
+
+#### Step 2: Check Admin Panel
+1. Log in to your Strapi admin panel
+2. Look for **"Soft Delete"** in the left sidebar under Plugins section
+3. If you don't see it, check your user permissions (see [Permissions](#permissions))
+
+#### Step 3: Test Soft Delete
+1. **Create a test entry:**
+   - Go to Content Manager
+   - Create a new article (or any content type)
+   - Save and publish it
+
+2. **Delete the entry:**
+   - Click the delete button (trash icon)
+   - Confirm deletion
+   - ✅ Entry is now soft deleted (not visible in Content Manager)
+
+3. **View in Explorer:**
+   - Navigate to **Soft Delete** in the sidebar
+   - You'll see your deleted entry in the table
+   - Notice the deletion timestamp and user info
+
+4. **Restore the entry:**
+   - Click the **"Restore"** button next to the entry
+   - Confirm restoration
+   - ✅ Entry reappears in Content Manager!
+
+### 🎯 Common Use Cases
+
+#### Use Case 1: Restore Accidentally Deleted Content
+```
+1. Go to Soft Delete Explorer (sidebar)
+2. Search for the deleted entry by name
+3. Click "Restore" button
+4. Entry is back in Content Manager
+```
+
+#### Use Case 2: Permanently Delete Old Content
+```
+1. Go to Soft Delete Explorer
+2. Filter by content type (e.g., "Articles")
+3. Select old entries using checkboxes
+4. Click "Delete Selected" (permanent)
+5. Confirm the warning dialog
+```
+
+#### Use Case 3: Bulk Restore Multiple Entries
+```
+1. Go to Soft Delete Explorer
+2. Use checkboxes to select entries
+3. Click "Restore Selected" button
+4. All selected entries are restored
+```
+
+### 🖥️ Admin Panel Features
+
+#### Explorer Table Columns
+- **Content Type:** The type of deleted content (e.g., `api::article.article`)
+- **ID:** Unique identifier of the entry
+- **Title:** Name or title of the deleted entry
+- **Deleted At:** When the entry was deleted
+- **Deleted By:** User who performed the deletion (or "System")
+- **Actions:** Restore or Delete Permanently buttons
+
+#### Filtering & Search
+- **Content Type Filter:** Dropdown to show only specific content types
+- **Search Bar:** Search by entry title or ID
+- **Pagination:** Navigate through pages if you have many deleted entries
+
+#### Bulk Operations
+- **Select All:** Checkbox in table header
+- **Restore Selected:** Restore multiple entries at once
+- **Delete Selected:** Permanently delete multiple entries (⚠️ irreversible)
+
+### 🔌 API Usage
+
+#### List Soft Deleted Entries
+```bash
+# Get all soft deleted entries
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  http://localhost:1337/api/soft-delete-custom/list
+
+# With pagination
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  "http://localhost:1337/api/soft-delete-custom/list?page=1&pageSize=25"
+
+# Filter by content type
+curl -H "Authorization: Bearer YOUR_TOKEN" \
+  "http://localhost:1337/api/soft-delete-custom/list?contentType=api::article.article"
+```
+
+#### Restore an Entry
+```bash
+curl -X POST \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  http://localhost:1337/api/soft-delete-custom/restore/api::article.article/123
+```
+
+#### JavaScript Example
+```javascript
+// Restore an entry using fetch
+async function restoreEntry(contentType, id) {
+  const response = await fetch(
+    `http://localhost:1337/api/soft-delete-custom/restore/${contentType}/${id}`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  const result = await response.json();
+  console.log('Restored:', result);
+}
+
+// Example usage
+restoreEntry('api::article.article', 123);
+```
+
+#### Bulk Restore Example
+```javascript
+const items = [
+  { contentType: 'api::article.article', id: 123 },
+  { contentType: 'api::article.article', id: 456 }
+];
+
+const response = await fetch(
+  'http://localhost:1337/api/soft-delete-custom/restore-bulk',
+  {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ items })
+  }
+);
+
+const result = await response.json();
+console.log(`Restored: ${result.restored}, Failed: ${result.failed}`);
+```
+
+### 🔐 Permission Setup
+
+#### For Admins (Full Access)
+Admins automatically have all permissions. No configuration needed.
+
+#### For Editors (View & Restore Only)
+1. Go to **Settings → Roles → Editor**
+2. Scroll to **Plugins → Soft Delete Custom**
+3. Enable:
+   - ✅ Read soft deleted entries
+   - ✅ Restore soft deleted entries
+   - ❌ Delete permanently (leave disabled for safety)
+4. Save
+
+#### For Viewers (Read Only)
+1. Create a new role: **Settings → Roles → Create**
+2. Name it "Soft Delete Viewer"
+3. Enable only:
+   - ✅ Read soft deleted entries
+4. Save
+
+### ❓ Common Questions
+
+**Q: Why don't I see the "Soft Delete" menu?**
+A: Check your user role has `plugin::soft-delete-custom.read` permission. Go to **Settings → Roles** and enable it.
+
+**Q: Can I permanently delete without soft delete first?**
+A: No, all deletes go through soft delete first. This is by design for safety. Use the explorer to permanently delete soft deleted entries.
+
+**Q: Do soft deleted entries count toward my database limits?**
+A: Yes, they remain in the database. Periodically clean up old soft deleted entries using the "Delete Permanently" feature.
+
+**Q: Can I query soft deleted entries in my code?**
+A: Yes, use `strapi.db.query()` directly instead of `entityService` to bypass automatic filtering:
+```javascript
+const softDeleted = await strapi.db.query('api::article.article').findMany({
+  where: { _softDeletedAt: { $notNull: true } }
+});
+```
+
+**Q: Does this work with GraphQL?**
+A: Yes, GraphQL queries use the entity service, so soft deleted entries are automatically filtered.
+
+### 🆘 Troubleshooting
+
+**Problem:** Deleted entries still appear in API responses
+**Solution:** You might be using `strapi.db.query()` directly. Use `strapi.entityService` instead for automatic filtering.
+
+**Problem:** Can't restore an entry
+**Solution:** Check if you have `plugin::soft-delete-custom.restore` permission AND update permission for that content type.
+
+**Problem:** Plugin menu not visible
+**Solution:**
+1. Verify plugin is enabled in `config/plugins.ts`
+2. Run `npm run build`
+3. Check user permissions include `read` permission
+
+### 📚 Next Steps
+
+- Read the full [Technical Documentation](#how-it-works) below
+- Check [API Endpoints](#api-endpoints) for programmatic access
+- Review [Known Limitations](#known-limitations) before production use
+- Explore [Lifecycle Hooks](#lifecycle-hooks) for custom behavior
+
 ## How It Works
 
 ### Schema Extension
