@@ -5,7 +5,7 @@ import type { ContentTypeInfo } from '../types';
  * Get content type display name from UID
  */
 export function getContentTypeDisplayName(strapi: Core.Strapi, uid: string): string {
-  const contentType = strapi.contentTypes[uid];
+  const contentType = (strapi.contentTypes as any)[uid];
 
   if (!contentType) {
     return uid;

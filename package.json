@@ -1,6 +1,6 @@
 {
   "name": "strapi-plugin-soft-delete-custom",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Strapi v5 soft delete plugin with restore functionality",
   "files": [
     "dist/",

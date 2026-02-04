@@ -5,6 +5,7 @@ export const PERMISSIONS = {
   read: 'plugin::soft-delete-custom.read',
   restore: 'plugin::soft-delete-custom.restore',
   deletePermanently: 'plugin::soft-delete-custom.delete-permanently',
+  settings: 'plugin::soft-delete-custom.settings',
 } as const;
 
 export default [
@@ -30,6 +31,14 @@ export default [
     properties: {},
     conditions: [],
     displayName: 'Delete permanently',
+    category: 'soft-delete',
+  },
+  {
+    action: PERMISSIONS.settings,
+    subject: null,
+    properties: {},
+    conditions: [],
+    displayName: 'Access settings',
     category: 'soft-delete',
   },
 ];

@@ -21,7 +21,7 @@ export function createPermanentDeleteService(strapi: Core.Strapi) {
      */
     async deletePermanently({ contentType, id, user }: PermanentDeleteParams) {
       // Check if content type exists
-      if (!strapi.contentTypes[contentType]) {
+      if (!(strapi.contentTypes as any)[contentType]) {
         throw new Error(`Content type ${contentType} not found`);
       }
 
@@ -46,7 +46,7 @@ export function createPermanentDeleteService(strapi: Core.Strapi) {
         throw new Error('Original delete method not found');
       }
 
-      const result = await originalDelete(contentType, id);
+      const result = await originalDelete(contentType as any, id);
 
       // Audit log
       strapi.log.warn(

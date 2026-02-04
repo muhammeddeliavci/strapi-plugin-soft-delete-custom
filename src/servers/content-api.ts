@@ -15,11 +15,11 @@ export function decorateEntityService(strapi: Core.Strapi) {
   /**
    * Override delete to perform soft delete instead
    */
-  strapi.entityService.delete = async (uid: string, entityId: any, params?: any) => {
-    const contentType = strapi.contentTypes[uid];
+  (strapi.entityService as any).delete = async (uid: string, entityId: any, params?: any) => {
+    const contentType = (strapi.contentTypes as any)[uid];
 
     if (!contentType || (contentType.kind !== 'collectionType' && contentType.kind !== 'singleType')) {
-      return originalDelete(uid, entityId, params);
+      return originalDelete(uid as any, entityId, params);
     }
 
     const user = params?.state?.user || params?.user;
@@ -27,7 +27,7 @@ export function decorateEntityService(strapi: Core.Strapi) {
     const userType = user?.type || 'api';
 
     // Convert delete to update with soft delete metadata
-    const result = await strapi.entityService.update(uid, entityId, {
+    const result = await (strapi.entityService as any).update(uid, entityId, {
       data: {
         _softDeletedAt: new Date(),
         _softDeletedById: userId,
@@ -43,11 +43,11 @@ export function decorateEntityService(strapi: Core.Strapi) {
   /**
    * Override findMany to exclude soft deleted entries
    */
-  strapi.entityService.findMany = async (uid: string, params?: any) => {
-    const contentType = strapi.contentTypes[uid];
+  (strapi.entityService as any).findMany = async (uid: string, params?: any) => {
+    const contentType = (strapi.contentTypes as any)[uid];
 
     if (!contentType || (contentType.kind !== 'collectionType' && contentType.kind !== 'singleType')) {
-      return originalFindMany(uid, params);
+      return originalFindMany(uid as any, params);
     }
 
     const filters = params?.filters || {};
@@ -59,18 +59,18 @@ export function decorateEntityService(strapi: Core.Strapi) {
       },
     };
 
-    return originalFindMany(uid, mergedParams);
+    return originalFindMany(uid as any, mergedParams);
   };
 
   /**
    * Override findOne to exclude soft deleted entries
    * Also handles single type scenario
    */
-  strapi.entityService.findOne = async (uid: string, entityId: any, params?: any) => {
-    const contentType = strapi.contentTypes[uid];
+  (strapi.entityService as any).findOne = async (uid: string, entityId: any, params?: any) => {
+    const contentType = (strapi.contentTypes as any)[uid];
 
     if (!contentType || (contentType.kind !== 'collectionType' && contentType.kind !== 'singleType')) {
-      return originalFindOne(uid, entityId, params);
+      return originalFindOne(uid as any, entityId, params);
     }
 
     const filters = params?.filters || {};
@@ -82,7 +82,7 @@ export function decorateEntityService(strapi: Core.Strapi) {
       },
     };
 
-    const result = await originalFindOne(uid, entityId, mergedParams);
+    const result = await originalFindOne(uid as any, entityId, mergedParams);
 
     // For single types, return null if soft deleted
     if (contentType.kind === 'singleType' && result && (result as any)._softDeletedAt) {
@@ -95,11 +95,11 @@ export function decorateEntityService(strapi: Core.Strapi) {
   /**
    * Override count to exclude soft deleted entries
    */
-  strapi.entityService.count = async (uid: string, params?: any) => {
-    const contentType = strapi.contentTypes[uid];
+  (strapi.entityService as any).count = async (uid: string, params?: any) => {
+    const contentType = (strapi.contentTypes as any)[uid];
 
     if (!contentType || (contentType.kind !== 'collectionType' && contentType.kind !== 'singleType')) {
-      return originalCount(uid, params);
+      return originalCount(uid as any, params);
     }
 
     const filters = params?.filters || {};
@@ -111,7 +111,7 @@ export function decorateEntityService(strapi: Core.Strapi) {
       },
     };
 
-    return originalCount(uid, mergedParams);
+    return originalCount(uid as any, mergedParams);
   };
 
   strapi.log.info('[soft-delete] Entity service decoration complete');

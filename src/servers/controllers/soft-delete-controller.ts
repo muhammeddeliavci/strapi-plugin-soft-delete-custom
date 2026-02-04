@@ -14,7 +14,7 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       const { page = 1, pageSize = 25, contentType, search } = ctx.query;
 
       const contentTypes = Object.keys(strapi.contentTypes).filter((uid) => {
-        const ct = strapi.contentTypes[uid];
+        const ct = (strapi.contentTypes as any)[uid];
         return ct.kind === 'collectionType' || ct.kind === 'singleType';
       });
 
@@ -164,6 +164,60 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       ctx.send(result);
     } catch (error: any) {
       ctx.throw(400, error.message);
+    }
+  },
+
+  async getSettings(ctx: any) {
+    try {
+      const pluginStore = strapi.store({
+        environment: '',
+        type: 'plugin',
+        name: 'soft-delete-custom',
+      });
+
+      const config: any = await pluginStore.get({ key: 'settings' }) || {};
+
+      const contentTypes = Object.keys(strapi.contentTypes)
+        .filter((uid) => {
+          const ct = (strapi.contentTypes as any)[uid];
+          return (ct.kind === 'collectionType' || ct.kind === 'singleType') && !uid.startsWith('plugin::') && !uid.startsWith('admin::');
+        })
+        .map((uid) => {
+          const ct = (strapi.contentTypes as any)[uid];
+          return { uid, displayName: ct.info?.displayName || ct.info?.name || uid };
+        });
+
+      ctx.send({
+        retentionDays: config.retentionDays || 30,
+        enabledContentTypes: config.enabledContentTypes || [],
+        availableContentTypes: contentTypes,
+      });
+    } catch (error: any) {
+      ctx.throw(500, error.message);
+    }
+  },
+
+  async updateSettings(ctx: any) {
+    try {
+      const { retentionDays, enabledContentTypes } = ctx.request.body;
+
+      const pluginStore = strapi.store({
+        environment: '',
+        type: 'plugin',
+        name: 'soft-delete-custom',
+      });
+
+      await pluginStore.set({
+        key: 'settings',
+        value: {
+          retentionDays,
+          enabledContentTypes,
+        },
+      });
+
+      ctx.send({ ok: true });
+    } catch (error: any) {
+      ctx.throw(500, error.message);
     }
   },
 });

@@ -64,4 +64,30 @@ export default [
       ],
     },
   },
+  {
+    method: 'GET',
+    path: '/settings',
+    handler: 'soft-delete-controller.getSettings',
+    config: {
+      policies: [
+        {
+          name: 'plugin::soft-delete-custom.hasPermission',
+          config: { permission: 'plugin::soft-delete-custom.settings' },
+        },
+      ],
+    },
+  },
+  {
+    method: 'POST',
+    path: '/settings',
+    handler: 'soft-delete-controller.updateSettings',
+    config: {
+      policies: [
+        {
+          name: 'plugin::soft-delete-custom.hasPermission',
+          config: { permission: 'plugin::soft-delete-custom.settings' },
+        },
+      ],
+    },
+  },
 ];

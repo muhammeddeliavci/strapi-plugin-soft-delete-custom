@@ -25,13 +25,7 @@ export default {
    * Bootstrap phase - called after all plugins are registered
    */
   bootstrap({ strapi }: { strapi: Core.Strapi }) {
-    // Initialize services
-    strapi.plugin('soft-delete-custom').service('restore', () => createRestoreService(strapi));
-    strapi.plugin('soft-delete-custom').service(
-      'permanent-delete',
-      () => createPermanentDeleteService(strapi)
-    );
-
+    // Services are registered in server(), bootstrap handles runtime setup if needed
     strapi.log.info('[soft-delete-custom] Plugin bootstrapped successfully');
   },
 

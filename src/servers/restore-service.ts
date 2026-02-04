@@ -21,7 +21,7 @@ export function createRestoreService(strapi: Core.Strapi) {
      */
     async restore({ contentType, id, user }: RestoreParams) {
       // Check if content type exists
-      if (!strapi.contentTypes[contentType]) {
+      if (!(strapi.contentTypes as any)[contentType]) {
         throw new Error(`Content type ${contentType} not found`);
       }
 
@@ -44,7 +44,7 @@ export function createRestoreService(strapi: Core.Strapi) {
       }
 
       // Restore by setting soft delete fields to null
-      const restored = await strapi.entityService.update(contentType, id, {
+      const restored = await (strapi.entityService as any).update(contentType, id, {
         data: {
           _softDeletedAt: null,
           _softDeletedById: null,
