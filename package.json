@@ -1,6 +1,6 @@
 {
   "name": "strapi-plugin-soft-delete-custom",
-  "version": "1.0.5",
+  "version": "1.1.0",
   "description": "Strapi v5 plugin for soft delete functionality",
   "type": "module",
   "main": "./dist/strapi-server.js",

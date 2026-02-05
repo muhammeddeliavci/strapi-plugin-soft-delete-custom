@@ -5,7 +5,7 @@ import { Core } from '@strapi/strapi';
  */
 export default ({ strapi }: { strapi: Core.Strapi }) => ({
   /**
-   * Decorates DB Query methods to catch ALL delete operations at the lowest level
+   * Decorates DB Query methods to catch ALL operations at the lowest level
    */
   decorateDbQuery() {
     const originalQuery = strapi.db.query.bind(strapi.db);
@@ -19,8 +19,12 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         return queryBuilder;
       }
 
+      // Store originals
       const originalDelete = queryBuilder.delete;
       const originalDeleteMany = queryBuilder.deleteMany;
+      const originalFindOne = queryBuilder.findOne;
+      const originalFindMany = queryBuilder.findMany;
+      const originalCount = queryBuilder.count;
 
       // Override delete
       queryBuilder.delete = async function(params: any) {
@@ -58,15 +62,41 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         });
       };
 
+      // Override findOne - filter out soft deleted
+      queryBuilder.findOne = async function(params: any = {}) {
+        const where = params.where || {};
+        if (where.softDeletedAt === undefined) {
+          params.where = { ...where, softDeletedAt: null };
+        }
+        return originalFindOne.call(this, params);
+      };
+
+      // Override findMany - filter out soft deleted
+      queryBuilder.findMany = async function(params: any = {}) {
+        const where = params.where || {};
+        if (where.softDeletedAt === undefined) {
+          params.where = { ...where, softDeletedAt: null };
+        }
+        return originalFindMany.call(this, params);
+      };
+
+      // Override count - exclude soft deleted
+      queryBuilder.count = async function(params: any = {}) {
+        const where = params.where || {};
+        if (where.softDeletedAt === undefined) {
+          params.where = { ...where, softDeletedAt: null };
+        }
+        return originalCount.call(this, params);
+      };
+
       return queryBuilder;
     };
 
-    strapi.log.info('Soft Delete: DB Query decorated');
+    strapi.log.info('Soft Delete: DB Query decorated (delete + find filtering)');
   },
 
   /**
-   * Decorates the entityService.delete and deleteMany methods to perform soft deletes.
-   * Also decorates documentService (Strapi v5) for Content Manager compatibility.
+   * Decorates the entityService methods
    */
   decorateEntityService() {
     const service = strapi.entityService as any;
@@ -77,10 +107,13 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
     const originalDelete = service.delete;
     const originalDeleteMany = service.deleteMany;
+    const originalFindOne = service.findOne;
+    const originalFindMany = service.findMany;
 
     service.__originalDelete = originalDelete;
     service.__originalDeleteMany = originalDeleteMany;
 
+    // DELETE
     service.delete = async (uid: string, id: string | number, params: any = {}) => {
       const model = strapi.getModel(uid as any);
       const hasSoftDelete = model.attributes && model.attributes['softDeletedAt'];
@@ -124,8 +157,41 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       });
     };
 
+    // FIND - Add filtering
+    service.findOne = async (uid: string, id: string | number, params: any = {}) => {
+      const model = strapi.getModel(uid as any);
+      const hasSoftDelete = model?.attributes && model.attributes['softDeletedAt'];
+
+      if (!hasSoftDelete) {
+        return originalFindOne.call(service, uid, id, params);
+      }
+
+      const filters = params.filters || {};
+      if (filters.softDeletedAt === undefined) {
+        params.filters = { ...filters, softDeletedAt: { $null: true } };
+      }
+
+      return originalFindOne.call(service, uid, id, params);
+    };
+
+    service.findMany = async (uid: string, params: any = {}) => {
+      const model = strapi.getModel(uid as any);
+      const hasSoftDelete = model?.attributes && model.attributes['softDeletedAt'];
+
+      if (!hasSoftDelete) {
+        return originalFindMany.call(service, uid, params);
+      }
+
+      const filters = params.filters || {};
+      if (filters.softDeletedAt === undefined) {
+        params.filters = { ...filters, softDeletedAt: { $null: true } };
+      }
+
+      return originalFindMany.call(service, uid, params);
+    };
+
     service.isDecoratedWithSoftDelete = true;
-    strapi.log.info('Soft Delete: Entity Service decorated');
+    strapi.log.info('Soft Delete: Entity Service decorated (delete + find filtering)');
 
     // Decorate Document Service (Strapi v5+)
     this.decorateDocumentService();
@@ -143,10 +209,13 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
     const originalDelete = documentService.delete;
     const originalDeleteMany = documentService.deleteMany;
+    const originalFindOne = documentService.findOne;
+    const originalFindMany = documentService.findMany;
 
     documentService.__originalDelete = originalDelete;
     documentService.__originalDeleteMany = originalDeleteMany;
 
+    // DELETE
     documentService.delete = async (uid: string, documentId: string, params: any = {}) => {
       const model = strapi.getModel(uid as any);
       const hasSoftDelete = model?.attributes && model.attributes['softDeletedAt'];
@@ -185,7 +254,6 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
 
       strapi.log.debug(`Soft Delete: Document Service - soft deleting many ${uid}`);
 
-      // Use db query for bulk operations
       return strapi.db.query(uid).updateMany({
         where: params.filters || {},
         data: {
@@ -196,11 +264,45 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
       });
     };
 
+    // FIND - Add filtering
+    documentService.findOne = async (uid: string, documentId: string, params: any = {}) => {
+      const model = strapi.getModel(uid as any);
+      const hasSoftDelete = model?.attributes && model.attributes['softDeletedAt'];
+
+      if (!hasSoftDelete) {
+        return originalFindOne.call(documentService, uid, documentId, params);
+      }
+
+      const filters = params.filters || {};
+      if (filters.softDeletedAt === undefined) {
+        params.filters = { ...filters, softDeletedAt: { $null: true } };
+      }
+
+      return originalFindOne.call(documentService, uid, documentId, params);
+    };
+
+    documentService.findMany = async (uid: string, params: any = {}) => {
+      const model = strapi.getModel(uid as any);
+      const hasSoftDelete = model?.attributes && model.attributes['softDeletedAt'];
+
+      if (!hasSoftDelete) {
+        return originalFindMany.call(documentService, uid, params);
+      }
+
+      const filters = params.filters || {};
+      if (filters.softDeletedAt === undefined) {
+        params.filters = { ...filters, softDeletedAt: { $null: true } };
+      }
+
+      return originalFindMany.call(documentService, uid, params);
+    };
+
     documentService.isDecoratedWithSoftDelete = true;
-    strapi.log.info('Soft Delete: Document Service decorated');
+    strapi.log.info('Soft Delete: Document Service decorated (delete + find filtering)');
   },
 
   registerLifecycleHooks() {
+    // Lifecycle hooks as backup
     const subscribe = (strapi.db as any).lifecycles.subscribe;
 
     subscribe({
@@ -209,7 +311,6 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         const model = strapi.getModel(event.model.uid as any);
         if (model.attributes && model.attributes['softDeletedAt']) {
           const where = event.params.where || {};
-          // Only add if not explicitly querying for it
           if (where.softDeletedAt === undefined) {
             event.params.where = { ...where, softDeletedAt: null };
           }
@@ -219,7 +320,6 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         const model = strapi.getModel(event.model.uid as any);
         if (model.attributes && model.attributes['softDeletedAt']) {
           const where = event.params.where || {};
-          // Only add if not explicitly querying for it
           if (where.softDeletedAt === undefined) {
             event.params.where = { ...where, softDeletedAt: null };
           }
