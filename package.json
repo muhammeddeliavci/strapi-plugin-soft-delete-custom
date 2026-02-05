@@ -1,6 +1,6 @@
 {
   "name": "strapi-plugin-soft-delete-custom",
-  "version": "1.0.0",
+  "version": "1.0.5",
   "description": "Strapi v5 plugin for soft delete functionality",
   "type": "module",
   "main": "./dist/strapi-server.js",
@@ -20,7 +20,10 @@
     "validate": "node scripts/validate-build.js",
     "prepublishOnly": "npm run build:clean"
   },
-  "dependencies": {},
+  "dependencies": {
+    "react-dnd": "^16.0.0",
+    "react-dnd-html5-backend": "^16.0.0"
+  },
   "devDependencies": {
     "typescript": "^5.0.0",
     "@types/node": "^18.0.0",

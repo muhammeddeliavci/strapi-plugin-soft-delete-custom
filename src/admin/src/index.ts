@@ -3,8 +3,13 @@ import { Trash } from '@strapi/icons';
 
 export default {
   register(app: any) {
+    app.registerPlugin({
+      id: PLUGIN_ID,
+      name: 'soft-delete',
+    });
+
     app.addMenuLink({
-      to: `plugins/${PLUGIN_ID}`,
+      to: `/plugins/${PLUGIN_ID}`,
       icon: Trash,
       intlLabel: {
         id: `${PLUGIN_ID}.plugin.name`,
@@ -20,11 +25,6 @@ export default {
           subject: null,
         },
       ],
-    });
-
-    app.registerPlugin({
-      id: PLUGIN_ID,
-      name: 'soft-delete',
     });
   },
 
