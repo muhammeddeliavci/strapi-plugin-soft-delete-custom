@@ -1,64 +1,48 @@
 # Strapi Soft Delete Plugin
 
-> Soft delete functionality for Strapi v5
-
 [![npm version](https://img.shields.io/npm/v/strapi-plugin-soft-delete-custom.svg)](https://www.npmjs.com/package/strapi-plugin-soft-delete-custom)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Strapi Version](https://img.shields.io/badge/strapi-v5-purple.svg)](https://strapi.io)
 
-## Table of Contents
-- [Features](#features)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-  - [Soft Delete](#soft-delete)
-  - [Restore](#restore)
-  - [Permanent Delete](#permanent-delete)
-  - [Query Filtering](#query-filtering)
-- [API Reference](#api-reference)
-- [Troubleshooting](#troubleshooting)
-- [Contributing](#contributing)
-- [License](#license)
+> A professional soft delete plugin for Strapi v5. Safely delete content with the ability to restore, while maintaining data integrity.
 
 ## Features
 
-- **Entity Service Decorator**: Automatically intercepts delete operations to perform soft delete.
-- **Lifecycle Hooks**: Filters out soft-deleted items from database queries.
-- **Auto Field Injection**: Automatically adds `_softDeletedAt`, `_softDeletedById`, and `_softDeletedByType` fields to content types.
-- **Admin UI Explorer**: Dedicated page to view, restore, and permanently delete soft-deleted items.
-- **Restore Service**: Programmatic API to restore soft-deleted entities.
-- **Permanent Delete**: Irreversible delete capability with RBAC protection.
-- **TypeScript Support**: Full TypeScript definitions with JavaScript compatibility.
+- **Soft Delete**: Delete items without permanently removing them from the database
+- **Restore Functionality**: Easily restore accidentally deleted items via Admin UI
+- **Strapi v5 Compatible**: Fully compatible with Strapi v5.35.0 and higher
+- **DocumentId Support**: Properly handles Strapi v5's documentId system
+- **Admin UI Explorer**: Dedicated page to view and restore soft-deleted items
+- **TypeScript Support**: Full TypeScript definitions included
+- **Zero Configuration**: Works out of the box with sensible defaults
 
 ## Requirements
 
-- **Strapi**: v5.35.0 or higher
-- **Node.js**: 18.0.0 or higher
-- **npm**: 6.0.0 or higher
+- Strapi v5.35.0 or higher
+- Node.js 18.0.0 or higher
+- npm 6.0.0 or higher
 
 ## Installation
 
-Using npm:
+### From npm (recommended)
+
 ```bash
 npm install strapi-plugin-soft-delete-custom
 ```
 
-Using yarn:
+### From GitHub
+
 ```bash
-yarn add strapi-plugin-soft-delete-custom
+npm install https://github.com/yourusername/strapi-plugin-soft-delete-custom/releases/download/v1.1.0/strapi-plugin-soft-delete-custom-1.1.0.tgz
 ```
 
-**Note**: You must rebuild your admin panel after installation:
-```bash
-npm run build
-```
+### Local tarball
 
-And restart your Strapi server.
+```bash
+npm install ./strapi-plugin-soft-delete-custom-1.1.0.tgz
+```
 
 ## Configuration
-
-### Minimal Configuration
 
 Enable the plugin in `config/plugins.ts`:
 
@@ -70,155 +54,114 @@ export default {
 };
 ```
 
-Or in `config/plugins.js`:
+Then rebuild and restart:
 
-```javascript
-module.exports = {
-  'soft-delete': {
-    enabled: true,
-  },
-};
+```bash
+npm run build
+npm run develop
 ```
-
-### Multi-Plugin Example
-
-```typescript
-export default {
-  'users-permissions': {
-    config: {
-      jwtSecret: process.env.JWT_SECRET,
-    },
-  },
-  'soft-delete': {
-    enabled: true,
-  },
-};
-```
-
-No additional options are required. The plugin works without conflicts with other plugins.
 
 ## Usage
 
 ### Soft Delete
 
-When you delete an entity via the Content Manager or the API (e.g., `DELETE /api/articles/1`), it is **not** removed from the database. Instead, it is marked with a timestamp in the `_softDeletedAt` field.
+When you delete an item via the Content Manager or API, it's **not** permanently deleted. Instead:
 
-Example soft-deleted entity structure:
-```json
-{
-  "id": 1,
-  "title": "My Article",
-  "_softDeletedAt": "2026-02-05T10:00:00.000Z",
-  "_softDeletedById": 1,
-  "_softDeletedByType": "admin-user"
-}
-```
+- `softDeletedAt` field is set to the current timestamp
+- `softDeletedById` field records who deleted it
+- `softDeletedByType` field records the user type (admin/api)
 
-### Restore
+The item becomes invisible in normal queries but can be restored.
 
-**Via Admin UI**:
-1. Go to "Soft Deleted Items" in the main navigation.
-2. Find your item.
-3. Click the "Restore" button.
+### Restore Deleted Items
 
-**Programmatic Restore**:
+1. Go to **Plugins** → **Soft Delete** in the Admin sidebar
+2. Select the content type from the dropdown
+3. Find your deleted item in the list
+4. Click **Restore** button
+
+The item will be immediately restored and visible again in normal queries.
+
+### Programmatic Usage
+
 ```typescript
-// In your custom controller or service
+// Restore a soft-deleted entity
 const restored = await strapi
   .plugin('soft-delete')
   .service('restore')
-  .restore(uid, id);
+  .restore('api::article.article', documentId);
 ```
 
-### Permanent Delete
+## How It Works
 
-**Via Admin UI**:
-1. Go to "Soft Deleted Items".
-2. Click the "Delete Permanently" button (trash icon).
-3. Confirm the action.
+### Automatic Field Injection
 
-**Programmatic Permanent Delete**:
-```typescript
-const deleted = await strapi
-  .plugin('soft-delete')
-  .service('permanent-delete')
-  .delete(uid, id, { confirm: true });
-```
+The plugin automatically adds these fields to all content types:
 
-**Warning**: This operation is irreversible.
+- `softDeletedAt` (datetime) - When the item was soft deleted
+- `softDeletedById` (string) - ID of the user who deleted it
+- `softDeletedByType` (string) - Type of user (admin/api)
 
 ### Query Filtering
 
-**Automatic Filtering**:
-Calls to `find` and `findMany` automatically exclude soft-deleted items.
+Soft-deleted items are automatically excluded from:
+- `find` and `findMany` operations
+- Content Manager list views
+- API responses
 
-**Querying Soft-Deleted Items**:
-To include soft-deleted items, use the filters:
+They only appear in the Soft Delete Explorer.
 
-```javascript
-// Find only soft-deleted items
-strapi.entityService.findMany('api::article.article', {
-  filters: {
-    _softDeletedAt: {
-      $notNull: true
-    }
-  }
-});
+## API Endpoints
 
-// Find active items (default behavior)
-strapi.entityService.findMany('api::article.article', {
-  filters: {
-    _softDeletedAt: {
-      $null: true
-    }
-  }
-});
+All endpoints are prefixed with `/admin` and require authentication.
+
+### List Soft Deleted Items
+
+```
+GET /admin/soft-delete/items?modelUid=api::article.article
 ```
 
-## API Reference
+### Restore Item
 
-### Services
+```
+POST /admin/soft-delete/restore/:uid/:id
+```
 
-Access services via `strapi.plugin('soft-delete').service('serviceName')`.
+## Permissions
 
-#### `restore` service
-- `restore(uid: string, id: number | string): Promise<any>`
-  - Restores a soft-deleted entity.
-
-#### `permanent-delete` service
-- `delete(uid: string, id: number | string, options?: { confirm: boolean }): Promise<any>`
-  - Permanently deletes an entity. `confirm: true` is required.
-
-### Permissions
-
-- `plugin::soft-delete.read`: Access the Soft Deleted Items explorer.
-- `plugin::soft-delete.restore`: Ability to restore items.
-- `plugin::soft-delete.permanent-delete`: Ability to permanently delete items.
-
-### API Endpoints
-
-- `GET /soft-delete/items`: List soft-deleted items.
-- `POST /soft-delete/restore/:uid/:id`: Restore an item.
-- `DELETE /soft-delete/permanent/:uid/:id`: Permanently delete an item.
+- `plugin::soft-delete.read` - View soft deleted items
+- `plugin::soft-delete.restore` - Restore soft deleted items
 
 ## Troubleshooting
 
-### Peer Dependencies
-If you encounter peer dependency warnings, you can try:
-```bash
-npm install strapi-plugin-soft-delete-custom --legacy-peer-deps
-```
+### Plugin not appearing in Admin
 
-### Plugin not appearing
-Ensure you have run `npm run build` and restarted the server. Check if `enabled: true` is set in `config/plugins.ts`.
+1. Ensure you've run `npm run build`
+2. Check that `enabled: true` is set in `config/plugins.ts`
+3. Restart the Strapi server
 
-### Debugging
-Enable debug logs by setting `NODE_ENV=development`.
+### Items not showing in Soft Delete Explorer
+
+1. Check the browser console for errors
+2. Ensure the content type has the `softDeletedAt` field
+3. Try refreshing the page
+
+### Migration from Strapi v4
+
+If upgrading from v4, you may need to manually add the soft delete fields to your existing content types or run the migration script.
 
 ## Contributing
 
-Pull requests are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 ## License
 
 [MIT](LICENSE) © 2026
+
+## Support
+
+For issues and feature requests, please use the [GitHub issue tracker](https://github.com/yourusername/strapi-plugin-soft-delete-custom/issues).
+
+---
+
+**Note**: This plugin is designed for Strapi v5. For Strapi v4, please use a different version.
