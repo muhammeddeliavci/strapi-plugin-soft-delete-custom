@@ -1,6 +1,6 @@
 # Strapi Soft Delete Plugin
 
-[![npm version](https://img.shields.io/npm/v/strapi-plugin-soft-delete-custom.svg)](https://www.npmjs.com/package/strapi-plugin-soft-delete-custom)
+[![npm version](https://img.shields.io/npm/v/@siyahbeyaz/strapi-plugin-soft-delete-custom.svg)](https://www.npmjs.com/package/@siyahbeyaz/strapi-plugin-soft-delete-custom)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Strapi Version](https://img.shields.io/badge/strapi-v5-purple.svg)](https://strapi.io)
 
@@ -27,13 +27,13 @@
 ### From npm (recommended)
 
 ```bash
-npm install strapi-plugin-soft-delete-custom
+npm install @siyahbeyaz/strapi-plugin-soft-delete-custom
 ```
 
 ### From GitHub
 
 ```bash
-npm install https://github.com/yourusername/strapi-plugin-soft-delete-custom/releases/download/v1.1.0/strapi-plugin-soft-delete-custom-1.1.0.tgz
+npm install https://github.com/siyahbeyaz/strapi-plugin-soft-delete-custom/releases/download/v1.1.0/strapi-plugin-soft-delete-custom-1.1.0.tgz
 ```
 
 ### Local tarball
@@ -160,7 +160,7 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 ## Support
 
-For issues and feature requests, please use the [GitHub issue tracker](https://github.com/yourusername/strapi-plugin-soft-delete-custom/issues).
+For issues and feature requests, please use the [GitHub issue tracker](https://github.com/siyahbeyaz/strapi-plugin-soft-delete-custom/issues).
 
 ---
 
