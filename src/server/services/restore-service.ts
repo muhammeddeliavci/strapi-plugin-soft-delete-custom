@@ -2,29 +2,69 @@ import { Core } from '@strapi/strapi';
 
 export default ({ strapi }: { strapi: Core.Strapi }) => ({
   async restore(uid: string, id: string | number) {
-    const entity = await strapi.entityService.findOne(uid as any, id, {
-      filters: {
-        _softDeletedAt: {
+    strapi.log.info(`[Soft Delete] Restore - uid: ${uid}, id: ${id}, type: ${typeof id}`);
+    
+    // First, try to find using strapi.db.query with id
+    let entity = await strapi.db.query(uid).findOne({
+      where: {
+        id: id,
+        softDeletedAt: {
           $notNull: true,
         },
       },
-    } as any);
+    });
+    
+    strapi.log.info(`[Soft Delete] Search by id result: ${entity ? 'found' : 'not found'}`);
+    
+    // If not found, try with documentId
+    if (!entity) {
+      entity = await strapi.db.query(uid).findOne({
+        where: {
+          documentId: id,
+          softDeletedAt: {
+            $notNull: true,
+          },
+        },
+      });
+      strapi.log.info(`[Soft Delete] Search by documentId result: ${entity ? 'found' : 'not found'}`);
+    }
+
+    // If still not found, try finding all soft-deleted items and match
+    if (!entity) {
+      strapi.log.info(`[Soft Delete] Trying to find all soft-deleted items to debug...`);
+      const allSoftDeleted = await strapi.db.query(uid).findMany({
+        where: {
+          softDeletedAt: {
+            $notNull: true,
+          },
+        },
+        limit: 10,
+      });
+      strapi.log.info(`[Soft Delete] Found ${allSoftDeleted.length} soft-deleted items`);
+      allSoftDeleted.forEach((item: any) => {
+        strapi.log.info(`[Soft Delete] Item - id: ${item.id}, documentId: ${item.documentId}`);
+      });
+    }
 
     if (!entity) {
+      strapi.log.error(`[Soft Delete] Entity not found - uid: ${uid}, id: ${id}`);
       throw new Error('Entity not found or not soft-deleted');
     }
+    
+    strapi.log.info(`[Soft Delete] Found entity - id: ${entity.id}, documentId: ${entity.documentId}`);
 
     const ctx = strapi.requestContext.get();
     const user = ctx?.state?.user;
 
-    strapi.log.info(`Soft Delete: Restoring ${uid}:${id} by user ${user?.id || 'system'}`);
+    strapi.log.info(`Soft Delete: Restoring ${uid}:${id} (db id: ${entity.id}) by user ${user?.id || 'system'}`);
 
-    const restored = await strapi.entityService.update(uid as any, id, {
+    const restored = await strapi.db.query(uid).update({
+      where: { id: entity.id },
       data: {
-        _softDeletedAt: null,
-        _softDeletedById: null,
-        _softDeletedByType: null,
-      } as any,
+        softDeletedAt: null,
+        softDeletedById: null,
+        softDeletedByType: null,
+      },
     });
 
     return {
@@ -46,14 +86,14 @@ export default ({ strapi }: { strapi: Core.Strapi }) => ({
         id: {
           $in: ids,
         },
-        _softDeletedAt: {
+        softDeletedAt: {
           $notNull: true,
         },
       },
       data: {
-        _softDeletedAt: null,
-        _softDeletedById: null,
-        _softDeletedByType: null,
+        softDeletedAt: null,
+        softDeletedById: null,
+        softDeletedByType: null,
       },
     });
 

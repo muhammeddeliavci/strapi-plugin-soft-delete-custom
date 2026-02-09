@@ -19,7 +19,7 @@ export default {
         },
       },
       {
-        method: 'DELETE',
+        method: 'POST',
         path: '/permanent/:uid/:id',
         handler: 'softDelete.permanentDelete',
         config: {
