@@ -33,7 +33,7 @@ npm install @siyahbeyaz/strapi-plugin-soft-delete-custom
 ### From GitHub
 
 ```bash
-npm install https://github.com/siyahbeyaz/strapi-plugin-soft-delete-custom/releases/download/v1.1.0/strapi-plugin-soft-delete-custom-1.1.0.tgz
+npm install https://github.com/muhammeddeliavci/strapi-plugin-soft-delete-custom/releases/download/v1.1.0/strapi-plugin-soft-delete-custom-1.1.0.tgz
 ```
 
 ### Local tarball
@@ -160,7 +160,7 @@ Contributions are welcome! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for gui
 
 ## Support
 
-For issues and feature requests, please use the [GitHub issue tracker](https://github.com/siyahbeyaz/strapi-plugin-soft-delete-custom/issues).
+For issues and feature requests, please use the [GitHub issue tracker](https://github.com/muhammeddeliavci/strapi-plugin-soft-delete-custom/issues).
 
 ---
 
