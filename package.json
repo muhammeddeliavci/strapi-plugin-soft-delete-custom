@@ -1,24 +1,33 @@
 {
   "name": "@siyahbeyaz/strapi-plugin-soft-delete-custom",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Strapi v5 plugin for soft delete functionality",
   "type": "module",
-  "main": "./dist/strapi-server.js",
+  "main": "./dist/strapi-server.mjs",
   "exports": {
-    "./strapi-server": "./dist/strapi-server.js",
-    "./strapi-admin": "./dist/strapi-admin.js",
+    "./strapi-server": {
+      "import": "./dist/strapi-server.mjs",
+      "require": "./dist/strapi-server.cjs"
+    },
+    "./strapi-admin": {
+      "import": "./dist/strapi-admin.mjs",
+      "require": "./dist/strapi-admin.cjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
     "dist",
+    "scripts",
     "README.md",
     "LICENSE"
   ],
   "scripts": {
-    "build": "tsc",
-    "build:clean": "rimraf dist && tsc",
+    "build": "tsup",
+    "build:clean": "rimraf dist && tsup",
     "validate": "node scripts/validate-build.js",
-    "prepublishOnly": "npm run build:clean"
+    "prepublishOnly": "npm run build:clean",
+    "postinstall": "node scripts/postinstall.cjs || exit 0",
+    "setup": "node scripts/setup.cjs"
   },
   "dependencies": {
     "react-dnd": "^16.0.0",
@@ -34,6 +43,7 @@
     "react-router-dom": "^6.0.0",
     "rimraf": "^5.0.10",
     "styled-components": "^6.0.0",
+    "tsup": "^8.5.1",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {

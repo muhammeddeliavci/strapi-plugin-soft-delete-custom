@@ -30,36 +30,39 @@
 npm install @siyahbeyaz/strapi-plugin-soft-delete-custom
 ```
 
-### From GitHub
+The plugin will **automatically configure itself** during installation! 🎉
+
+If automatic configuration fails, you can run:
 
 ```bash
-npm install https://github.com/muhammeddeliavci/strapi-plugin-soft-delete-custom/releases/download/v1.1.0/strapi-plugin-soft-delete-custom-1.1.0.tgz
+npm run setup
 ```
 
-### Local tarball
-
-```bash
-npm install ./strapi-plugin-soft-delete-custom-1.1.0.tgz
-```
-
-## Configuration
-
-Enable the plugin in `config/plugins.ts`:
+Or manually add to your `config/plugins.ts`:
 
 ```typescript
 export default {
   'soft-delete': {
     enabled: true,
+    resolve: '@siyahbeyaz/strapi-plugin-soft-delete-custom'
   },
 };
 ```
 
-Then rebuild and restart:
+### From GitHub
+
+```bash
+npm install https://github.com/muhammeddeliavci/strapi-plugin-soft-delete-custom/releases/download/v1.2.1/strapi-plugin-soft-delete-custom-1.2.1.tgz
+```
+
+### Rebuild and Restart
 
 ```bash
 npm run build
 npm run develop
 ```
+
+The plugin will be immediately available in your Admin panel under **Plugins** → **Soft Delete**.
 
 ## Usage
 
